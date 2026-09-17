@@ -25,15 +25,61 @@ jobs:
 
       - name: Unzip Android project
         run: |
+          rm -rf android-project
+          mkdir -p android-project
           unzip -q Ziy_AI_Android_Ready.zip -d android-project
-          PROJECT_DIR=$(dirname "$(find android-project -name settings.gradle -o -name settings.gradle.kts | head -n 1)")
+
+          SETTINGS_FILE=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) | head -n 1)
+
+          if [ -z "$SETTINGS_FILE" ]; then
+            echo "ERROR: settings.gradle not found"
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$SETTINGS_FILE")
+
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
 
       - name: Fix Android source files
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          sed -i 's/View\.FOCUS_DOWN/android.view.View.FOCUS_DOWN/g' app/src/main/java/com/ziy/ai/MainActivity.java
+          echo "Fixing Android XML files..."
+
+          find app/src/main/res -type f -name "*.xml" \
+            -exec sed -i 's/android:hintTextColor/android:textColorHint/g' {} \;
+
+          echo "Fixing MainActivity.java..."
+
+          MAIN_ACTIVITY=$(find app/src/main/java -type f -name "MainActivity.java" | head -n 1)
+
+          if [ -z "$MAIN_ACTIVITY" ]; then
+            echo "ERROR: MainActivity.java not found"
+            exit 1
+          fi
+
+          sed -i 's/View\.FOCUS_DOWN/android.view.View.FOCUS_DOWN/g' "$MAIN_ACTIVITY"
+
+          echo "MainActivity fixed: $MAIN_ACTIVITY"
+
+      - name: Verify fixes
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          echo "Checking for invalid hintTextColor..."
+          if grep -R "android:hintTextColor" app/src/main/res --include="*.xml"; then
+            echo "ERROR: hintTextColor still exists"
+            exit 1
+          fi
+
+          echo "Checking MainActivity..."
+          MAIN_ACTIVITY=$(find app/src/main/java -type f -name "MainActivity.java" | head -n 1)
+
+          if grep -n "View.FOCUS_DOWN" "$MAIN_ACTIVITY"; then
+            echo "ERROR: View.FOCUS_DOWN still exists"
+            exit 1
+          fi
+
+          echo "All automatic fixes verified successfully."
 
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
