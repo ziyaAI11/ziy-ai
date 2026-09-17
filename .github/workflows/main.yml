@@ -1,0 +1,31 @@
+name: Build Ziy AI APK
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip Android project
+        run: |
+          unzip -q Ziy_AI_Android_Ready.zip -d android-project
+          PROJECT_DIR=$(dirname "$(find android-project -name gradlew -type f | head -1)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
+      - name: Build APK
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Ziy-AI-APK
+          path: android-project/**/build/outputs/apk/debug/*.apk
