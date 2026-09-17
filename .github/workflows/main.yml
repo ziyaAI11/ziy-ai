@@ -33,7 +33,7 @@ jobs:
       - name: Fix Android source files
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
-          sed -i 's/android:hintTextColor/android:textColorHint/g' app/src/main/res/layout/activity_main.xml
+          sed -i 's/View\.FOCUS_DOWN/android.view.View.FOCUS_DOWN/g' app/src/main/java/com/ziy/ai/MainActivity.java
 
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
