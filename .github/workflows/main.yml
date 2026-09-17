@@ -26,8 +26,14 @@ jobs:
       - name: Unzip Android project
         run: |
           unzip -q Ziy_AI_Android_Ready.zip -d android-project
-          PROJECT_DIR=$(dirname "$(find android-project -name settings.gradle -o -name settings.gradle.kts | head -1)")
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          PROJECT_DIR=$(dirname "$(find android-project -name settings.gradle -o -name settings.gradle.kts | head -n 1)")
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Project directory: $PROJECT_DIR"
+
+      - name: Fix hint text color
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          sed -i 's/android:hintTextColor/android:textColorHint/g' app/src/main/res/layout/activity_main.xml
 
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
@@ -38,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Ziy-AI-APK
-          path: android-project/**/build/outputs/apk/debug/*.apk
+          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
