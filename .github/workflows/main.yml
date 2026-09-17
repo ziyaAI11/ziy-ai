@@ -30,7 +30,7 @@ jobs:
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
 
-      - name: Fix hint text color
+      - name: Fix Android source files
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           sed -i 's/android:hintTextColor/android:textColorHint/g' app/src/main/res/layout/activity_main.xml
