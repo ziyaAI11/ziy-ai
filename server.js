@@ -5,7 +5,8 @@ const app = express();
 app.use(express.json());
 
 const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
+  baseURL: "https://openrouter.ai/api/v1",
+  apiKey: process.env.OPENROUTER_API_KEY
 });
 
 app.get("/", (req, res) => {
@@ -17,16 +18,23 @@ app.post("/api/chat", async (req, res) => {
     const message = req.body.message;
 
     if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+      return res.status(400).json({
+        error: "Message is required"
+      });
     }
 
-    const response = await client.responses.create({
-      model: "gpt-5.6-luna",
-      input: message
+    const response = await client.chat.completions.create({
+      model: "openrouter/free",
+      messages: [
+        {
+          role: "user",
+          content: message
+        }
+      ]
     });
 
     res.json({
-      text: response.output_text
+      text: response.choices[0].message.content
     });
 
   } catch (error) {
