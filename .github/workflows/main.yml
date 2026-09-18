@@ -28,12 +28,12 @@ jobs:
           rm -rf android-project
           mkdir -p android-project
 
-          if [ ! -f "Ziy_AI_Android_Ready.zip" ]; then
+          if [ ! -f "ZiyAI_Android_with_new_icon.zip" ]; then
             echo "ERROR: Ziy_AI_Android_Ready.zip not found"
             exit 1
           fi
 
-          unzip -q Ziy_AI_Android_Ready.zip -d android-project
+          unzip -q ZiyAI_Android_with_new_icon.zip -d android-project
 
           SETTINGS_FILE=$(find android-project -type f \
             \( -name "settings.gradle" -o -name "settings.gradle.kts" \) \
