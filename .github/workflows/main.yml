@@ -48,7 +48,12 @@ jobs:
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Project directory: $PROJECT_DIR"
-
+      - name: Find server URL
+        working-directory: ${{ env.PROJECT_DIR }}
+        run: |
+          MAIN_ACTIVITY=$(find app/src/main/java -type f -name "MainActivity.java" | head -n 1)
+          echo "=== SERVER RELATED LINES ==="
+          grep -nEi 'http|server|url|api/chat|اتصال برقرار شد' "$MAIN_ACTIVITY" || true
       - name: Fix Android source files
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
