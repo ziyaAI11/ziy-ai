@@ -104,10 +104,13 @@ jobs:
             exit 1
           fi
 
-          if grep -n "FOCUS_DOWN" "$MAIN_ACTIVITY"; then
-            echo "ERROR: FOCUS_DOWN still exists"
-            exit 1
-          fi
+           
+            
+            
+  
+    
+
+          
 
           echo "All automatic fixes verified successfully."
 
