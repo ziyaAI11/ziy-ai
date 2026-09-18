@@ -27,9 +27,17 @@ jobs:
         run: |
           rm -rf android-project
           mkdir -p android-project
+
+          if [ ! -f "Ziy_AI_Android_Ready.zip" ]; then
+            echo "ERROR: Ziy_AI_Android_Ready.zip not found"
+            exit 1
+          fi
+
           unzip -q Ziy_AI_Android_Ready.zip -d android-project
 
-          SETTINGS_FILE=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) | head -n 1)
+          SETTINGS_FILE=$(find android-project -type f \
+            \( -name "settings.gradle" -o -name "settings.gradle.kts" \) \
+            | head -n 1)
 
           if [ -z "$SETTINGS_FILE" ]; then
             echo "ERROR: settings.gradle not found"
@@ -46,36 +54,58 @@ jobs:
         run: |
           echo "Fixing Android XML files..."
 
-          find app/src/main/res -type f -name "*.xml" \
-            -exec sed -i 's/android:hintTextColor/android:textColorHint/g' {} \;
+          if [ -d "app/src/main/res" ]; then
+            find app/src/main/res -type f -name "*.xml" \
+              -exec sed -i 's/android:hintTextColor/android:textColorHint/g' {} \;
+          fi
 
           echo "Fixing MainActivity.java..."
 
-          MAIN_ACTIVITY=$(find app/src/main/java -type f -name "MainActivity.java" | head -n 1)
+          MAIN_ACTIVITY=$(find app/src/main/java \
+            -type f \
+            -name "MainActivity.java" \
+            | head -n 1)
 
           if [ -z "$MAIN_ACTIVITY" ]; then
             echo "ERROR: MainActivity.java not found"
             exit 1
           fi
 
-          sed -i 's/View\.FOCUS_DOWN/android.view.View.FOCUS_DOWN/g' "$MAIN_ACTIVITY"
+          echo "MainActivity: $MAIN_ACTIVITY"
 
-          echo "MainActivity fixed: $MAIN_ACTIVITY"
+          # Replace both possible forms of FOCUS_DOWN
+          sed -i \
+            -e 's/android\.view\.View\.FOCUS_DOWN/130/g' \
+            -e 's/View\.FOCUS_DOWN/130/g' \
+            "$MAIN_ACTIVITY"
+
+          echo "MainActivity fixed successfully."
 
       - name: Verify fixes
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
           echo "Checking for invalid hintTextColor..."
-          if grep -R "android:hintTextColor" app/src/main/res --include="*.xml"; then
-            echo "ERROR: hintTextColor still exists"
+
+          if grep -R "android:hintTextColor" app/src/main/res \
+            --include="*.xml" 2>/dev/null; then
+            echo "ERROR: android:hintTextColor still exists"
             exit 1
           fi
 
           echo "Checking MainActivity..."
-          MAIN_ACTIVITY=$(find app/src/main/java -type f -name "MainActivity.java" | head -n 1)
 
-          if grep -n "View.FOCUS_DOWN" "$MAIN_ACTIVITY"; then
-            echo "ERROR: View.FOCUS_DOWN still exists"
+          MAIN_ACTIVITY=$(find app/src/main/java \
+            -type f \
+            -name "MainActivity.java" \
+            | head -n 1)
+
+          if [ -z "$MAIN_ACTIVITY" ]; then
+            echo "ERROR: MainActivity.java not found"
+            exit 1
+          fi
+
+          if grep -n "FOCUS_DOWN" "$MAIN_ACTIVITY"; then
+            echo "ERROR: FOCUS_DOWN still exists"
             exit 1
           fi
 
@@ -84,6 +114,7 @@ jobs:
       - name: Build APK
         working-directory: ${{ env.PROJECT_DIR }}
         run: |
+          echo "Starting Gradle build..."
           gradle assembleDebug --no-daemon
 
       - name: Upload APK
@@ -91,3 +122,4 @@ jobs:
         with:
           name: Ziy-AI-APK
           path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
