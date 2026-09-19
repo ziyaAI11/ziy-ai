@@ -35,6 +35,7 @@ jobs:
 
           unzip -q ZiyAI_Android_with_new_icon.zip -d android-project
 
+
           SETTINGS_FILE=$(find android-project -type f \
             \( -name "settings.gradle" -o -name "settings.gradle.kts" \) \
             | head -n 1)
