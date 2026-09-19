@@ -78,7 +78,7 @@ jobs:
           fi
 
           echo "MainActivity: $MAIN_ACTIVITY"
-           sed -i 's#https://YOUR-ZIY-AI-SERVER\.example\.com/api/chat#https://ziy-ai.onrender.com/api/chat#g' "$MAIN_ACTIVITY"    
+           sed -i\ 's#https://YOUR-ZIY-AI-SERVER\.example\.com/api/chat#https://ziy-ai.onrender.com/api/chat#g' "$MAIN_ACTIVITY"    
 
           # Replace both possible forms of FOCUS_DOWN
           sed -i \
