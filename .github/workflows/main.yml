@@ -1,4 +1,4 @@
-name: Build Ziy AI APK
+name: Build Ziy AI APk
 
 on:
   workflow_dispatch:
