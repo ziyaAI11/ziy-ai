@@ -45,7 +45,9 @@ jobs:
           echo "$PROJECT_DIR"
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
+      - name: Fix Android XML
+        run: |
+          sed -i 's/ android:hintTextColor="[^"]*"//g' "$PROJECT_DIR/app/src/main/res/layout/activity_main.xml"
       - name: Build APK
         run: |
           cd "$PROJECT_DIR"
