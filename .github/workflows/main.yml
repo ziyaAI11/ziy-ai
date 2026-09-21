@@ -1,61 +1,25 @@
-name: Build Ziy AI APk
+package com.ziy.ai;
+import android.app.*; import android.os.*; import android.widget.*; import java.io.*; import java.net.*; import org.json.*;
 
-on:
-  workflow_dispatch:
-  push:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.9'
-
-      - name: Unzip project
-        run: |
-          rm -rf android-project
-          mkdir android-project
-          unzip -q ZiyAI_Android_with_new_icon.zip -d android-project
-
-      - name: Find Android project
-        run: |
-          SETTINGS=$(find android-project -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) | head -n 1)
-
-          if [ -z "$SETTINGS" ]; then
-            echo "ERROR: No Gradle settings file found"
-            find android-project -maxdepth 4 -type f | head -100
-            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$SETTINGS")
-
-          echo "Android project found:"
-          echo "$PROJECT_DIR"
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-      - name: Fix Android XML
-        run: |
-          sed -i 's/ android:hintTextColor="[^"]*"//g' "$PROJECT_DIR/app/src/main/res/layout/activity_main.xml"
-      - name: Build APK
-        run: |
-          cd "$PROJECT_DIR"
-          gradle assembleDebug --no-daemon
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Ziy-AI-APK
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
+public class MainActivity extends Activity {
+ TextView chat; EditText input; ScrollView scroll;
+ // Put YOUR deployed HTTPS Ziy AI server here.
+ static final String SERVER_URL="https://ziy-ai.onrender.com/api/chat";
+ public void onCreate(Bundle b){super.onCreate(b);setContentView(R.layout.activity_main);
+  chat=findViewById(R.id.chat);input=findViewById(R.id.input);scroll=findViewById(R.id.scroll);
+  findViewById(R.id.send).setOnClickListener(v->send());
+ }
+ void send(){String m=input.getText().toString().trim();if(m.isEmpty())return; chat.append("\n\nشما: "+m);input.setText("");
+  chat.append("\n\nZiy AI: در حال فکر کردن... ⏳"); scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN));
+  new Thread(()->{try{
+    URL u=new URL(SERVER_URL);HttpURLConnection c=(HttpURLConnection)u.openConnection();
+    c.setRequestMethod("POST");c.setRequestProperty("Content-Type","application/json");c.setDoOutput(true);
+    JSONObject o=new JSONObject();o.put("message",m);
+    OutputStream os=c.getOutputStream();os.write(o.toString().getBytes("UTF-8"));os.close();
+    BufferedReader r=new BufferedReader(new InputStreamReader(c.getInputStream()));StringBuilder s=new StringBuilder();String line;while((line=r.readLine())!=null)s.append(line);
+    JSONObject ans=new JSONObject(s.toString());String text=ans.optString("text","پاسخی دریافت نشد.");
+    runOnUiThread(()->{chat.append("\n"+text);scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN));});
+   }catch(Exception e){runOnUiThread(()->chat.append("\nاتصال برقرار نشد. آدرس سرور را در MainActivity تنظیم کن."));}
+  }).start();
+ }
+}
