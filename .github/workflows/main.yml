@@ -1,25 +1,59 @@
-package com.ziy.ai;
-import android.app.*; import android.os.*; import android.widget.*; import java.io.*; import java.net.*; import org.json.*;
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#10131A"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-public class MainActivity extends Activity {
- TextView chat; EditText input; ScrollView scroll;
- // Put YOUR deployed HTTPS Ziy AI server here.
- static final String SERVER_URL="https://ziy-ai.onrender.com/api/chat";
- public void onCreate(Bundle b){super.onCreate(b);setContentView(R.layout.activity_main);
-  chat=findViewById(R.id.chat);input=findViewById(R.id.input);scroll=findViewById(R.id.scroll);
-  findViewById(R.id.send).setOnClickListener(v->send());
- }
- void send(){String m=input.getText().toString().trim();if(m.isEmpty())return; chat.append("\n\nشما: "+m);input.setText("");
-  chat.append("\n\nZiy AI: در حال فکر کردن... ⏳"); scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN));
-  new Thread(()->{try{
-    URL u=new URL(SERVER_URL);HttpURLConnection c=(HttpURLConnection)u.openConnection();
-    c.setRequestMethod("POST");c.setRequestProperty("Content-Type","application/json");c.setDoOutput(true);
-    JSONObject o=new JSONObject();o.put("message",m);
-    OutputStream os=c.getOutputStream();os.write(o.toString().getBytes("UTF-8"));os.close();
-    BufferedReader r=new BufferedReader(new InputStreamReader(c.getInputStream()));StringBuilder s=new StringBuilder();String line;while((line=r.readLine())!=null)s.append(line);
-    JSONObject ans=new JSONObject(s.toString());String text=ans.optString("text","پاسخی دریافت نشد.");
-    runOnUiThread(()->{chat.append("\n"+text);scroll.post(()->scroll.fullScroll(View.FOCUS_DOWN));});
-   }catch(Exception e){runOnUiThread(()->chat.append("\nاتصال برقرار نشد. آدرس سرور را در MainActivity تنظیم کن."));}
-  }).start();
- }
-}
+    <TextView
+        android:text="🤖  Ziy AI"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:padding="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <TextView
+            android:id="@+id/chat"
+            android:text="سلام ضیا! 👋&#10;من Ziy AI هستم. آماده‌ام! 🤖🔥"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:lineSpacingExtra="6dp"
+            android:padding="12dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/input"
+            android:hint="پیامت رو بنویس..."
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#7C3AED"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/send"
+            android:text="ارسال"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+</LinearLayout>
